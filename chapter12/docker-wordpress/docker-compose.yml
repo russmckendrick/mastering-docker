@@ -17,7 +17,7 @@ services:
     depends_on:
       - mysql
   mysql:
-      image: mysql:5.7
+      image: mysql:8
       environment:
         MYSQL_ROOT_PASSWORD: "wordpress"
         MYSQL_USER: "wordpress"
