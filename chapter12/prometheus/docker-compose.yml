@@ -1,0 +1,56 @@
+version: "3"
+
+services:
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    restart: unless-stopped
+    expose:
+      - 9090
+    depends_on:
+      - cadvisor
+      - node-exporter
+
+  node-exporter:
+    container_name: node-exporter
+    image: prom/node-exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command: '-collector.procfs=/host/proc -collector.sysfs=/host/sys -collector.filesystem.ignored-mount-points="^(/rootfs|/host|)/(sys|proc|dev|host|etc)($$|/)" collector.filesystem.ignored-fs-types="^(sys|proc|auto|cgroup|devpts|ns|au|fuse\.lxc|mqueue)(fs|)$$"'
+    expose:
+      - 9100
+
+  cadvisor:
+    image: google/cadvisor:latest
+    container_name: cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    restart: unless-stopped
+    expose:
+      - 8080
+  
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    volumes:
+      - grafana_data:/var/lib/grafana
+    env_file:
+      - grafana.config
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    depends_on:
+      - prometheus
+
+volumes:
+    prometheus_data:
+    grafana_data:
